@@ -211,7 +211,7 @@ You can explicitly link ``Page``-derived models together using the ``Page`` mode
 Snippets
 --------
 
-Snippets are not subclasses, so you must include the model class directly. A chooser is provided which takes the field name snippet class.
+Snippets are vanilla Django models you create yourself without a Wagtail-provided base class. So using them as a field in a page requires specifying your own ``appname.modelname``. A chooser, ``SnippetChooserPanel``, is provided which takes the field name and snippet class.
 
 .. code-block:: python
 
@@ -248,6 +248,12 @@ Full-Width Input
 Use ``classname="full"`` to make a field (input element) stretch the full width of the Wagtail page editor. This will not work if the field is encapsulated in a ``MultiFieldPanel``, which places its child fields into a formset.
 
 
+Titles
+------
+
+Use ``classname="title"`` to make Page's built-in title field stand out with more vertical padding.
+
+
 Required Fields
 ---------------
 
@@ -264,18 +270,10 @@ Without a panel definition, a default form field (without label) will be used to
 .. _Django model field reference (editable): https://docs.djangoproject.com/en/dev/ref/models/fields/#editable
 
 
-
-
-
-
-
-
-
-
-
-
 MultiFieldPanel
 ~~~~~~~~~~~~~~~
+
+The ``MultiFieldPanel`` groups a list of child fields into a fieldset, which can also be collapsed into a heading bar to save space.
 
 .. code-block:: python
 
@@ -294,8 +292,7 @@ MultiFieldPanel
     # ...
   ]
 
-
-
+By default, ``MultiFieldPanel`` s are expanded and not collapsible. Adding the classname ``collapsible`` will enable the collapse control. Adding both ``collapsible`` and ``collapsed`` to the classname parameter will load the editor page with the ``MultiFieldPanel`` collapsed under its heading.
 
 
 .. _inline_panels:
@@ -303,7 +300,55 @@ MultiFieldPanel
 Inline Panels and Model Clusters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``django-modelcluster`` module allows for streamlined relation of extra models to a Wagtail page.
+The ``django-modelcluster`` module allows for streamlined relation of extra models to a Wagtail page. For instance, you can create objects related through a ``ForeignKey`` relationship on the fly and save them to a draft revision of a ``Page`` object. Normally, your related objects "cluster" would need to be created beforehand (or asynchronously) before linking them to a Page.
+
+Let's look at the example of adding related links to a ``Page``-derived model. We want to be able to add as many as we like, assign an order, and do all of this without leaving the page editing screen.
+
+.. code-block:: python
+
+  from wagtail.wagtailcore.models import Orderable, Page
+  from modelcluster.fields import ParentalKey
+
+  # The abstract model for related links, complete with panels
+  class RelatedLink(models.Model):
+      title = models.CharField(max_length=255)
+      link_external = models.URLField("External link", blank=True)
+
+      panels = [
+          FieldPanel('title'),
+          FieldPanel('link_external'),
+      ]
+
+      class Meta:
+          abstract = True
+
+  # The real model which combines the abstract model, an
+  # Orderable helper class, and what amounts to a ForeignKey link
+  # to the model we want to add related links to (BookPage)
+  class BookPageRelatedLinks(Orderable, RelatedLink):
+      page = ParentalKey('demo.BookPage', related_name='related_links')
+
+  class BookPage( Page ):
+    # ...
+
+  BookPage.content_panels = [
+    # ...
+    InlinePanel( BookPage, 'related_links', label="Related Links" ),
+  ]
+
+The ``RelatedLink`` class is a vanilla Django abstract model. The ``BookPageRelatedLinks`` model extends it with capability for being ordered in the Wagtail interface via the ``Orderable`` class as well as adding a ``page`` property which links the model to the ``BookPage`` model we're adding the related links objects to. Finally, in the panel definitions for ``BookPage``, we'll add an ``InlinePanel`` to provide an interface for it all. Let's look again at the parameters that ``InlinePanel`` accepts:
+
+.. code-block:: python
+
+  InlinePanel( base_model, relation_name, panels=None, label='', help_text='' )
+
+``base_model`` is the model you're extending with the cluster. The ``relation_name`` is the ``related_name`` label given to the cluster's ``ParentalKey`` relation. You can add the ``panels`` manually or make them part of the cluster model. Finally, ``label`` and ``help_text`` provide a heading and caption, respectively, for the Wagtail editor.
+
+For another example of using model clusters, see :ref:`tagging`
+
+For more on ``django-modelcluster``, visit `the django-modelcluster github project page`_ ).
+
+.. _the django-modelcluster github page: https://github.com/torchbox/django-modelcluster
 
 
 .. _extending_wysiwyg:
@@ -313,6 +358,9 @@ Extending the WYSIWYG Editor (hallo.js)
 
 Adding hallo.js plugins:
 https://github.com/torchbox/wagtail/commit/1ecc215759142e6cafdacb185bbfd3f8e9cd3185
+
+
+
 
 
 Edit Handler API

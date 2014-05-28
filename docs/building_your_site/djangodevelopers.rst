@@ -185,32 +185,32 @@ Page Properties and Methods Reference
 
 In addition to the model fields provided, ``Page`` has many properties and methods that you may wish to reference, use, or override in creating your own models. Those listed here are relatively straightforward to use, but consult the Wagtail source code for a full view of what's possible.
 
-Properties:
+Properties::
 
-specific
-url
-full_url
-relative_url
-has_unpublished_changes
-status_string
-subpage_types
-indexed_fields
+    specific
+    url
+    full_url
+    relative_url
+    has_unpublished_changes
+    status_string
+    subpage_types
+    indexed_fields
 
 
-Methods:
+Methods::
 
-route
-serve
-get_context
-get_template
-is_navigable
-get_other_siblings
-get_ancestors
-get_descendants
-get_siblings
-search
-get_page_modes
-show_as_mode
+    route
+    serve
+    get_context
+    get_template
+    is_navigable
+    get_other_siblings
+    get_ancestors
+    get_descendants
+    get_siblings
+    search
+    get_page_modes
+    show_as_mode
 
 
 
