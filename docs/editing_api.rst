@@ -367,4 +367,70 @@ Edit Handler API
 ~~~~~~~~~~~~~~~~
 
 
+Hooks
+-----
 
+On loading, Wagtail will search for any app with the file ``wagtail_hooks.py`` and execute the contents. This provides a way to register your own functions to execute at certain points in Wagtail's execution, such as when a ``Page`` object is saved or when the main menu is constructed.
+
+construct_wagtail_edit_bird
+  Add or remove items from the wagtail userbar. Add, edit, and moderation tools are provided by default.
+
+construct_homepage_panels
+  Add or remove panels from the Wagtail admin homepage.
+
+after_create_page
+  Do something with a ``Page`` object after it has been saved to the database (as a published page or a revision).
+
+after_edit_page
+  Do something with a ``Page`` object after it has been updated.
+
+after_delete_page
+  Do something after a ``Page`` object is deleted.
+
+register_admin_urls
+  Register additional admin page URLs.
+
+construct_main_menu
+  Add, remove, or alter ``MenuItem`` objects from the Wagtail admin menu.
+
+
+insert_editor_js
+  Add additional Javascript files or code snippets to the page editor. Output must be compatible with ``compress``, as local static includes or string.
+
+.. code-block:: python
+
+  from django.utils.html import format_html, format_html_join
+  from django.conf import settings
+
+  from wagtail.wagtailadmin import hooks
+
+  def editor_js():
+    js_files = [
+      'demo/js/hallo-plugins/hallo-demo-plugin.js',
+    ]
+    js_includes = format_html_join('\n', '<script src="{0}{1}"></script>',
+      ((settings.STATIC_URL, filename) for filename in js_files)
+    )
+    return js_includes + format_html(
+      """
+      <script>
+        registerHalloPlugin('demoeditor');
+      </script>
+      """
+    )
+  hooks.register('insert_editor_js', editor_js)
+
+
+insert_editor_css
+  Add additional CSS or SCSS files or snippets to the page editor. Output must be compatible with ``compress``, as local static includes or string.
+
+.. code-block:: python
+
+  from django.utils.html import format_html
+  from django.conf import settings
+
+  from wagtail.wagtailadmin import hooks
+
+  def editor_css():
+    return format_html('<link rel="stylesheet" href="'+ settings.STATIC_URL + 'demo/css/vendor/font-awesome/css/font-awesome.min.css">')
+  hooks.register('insert_editor_css', editor_css)
