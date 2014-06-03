@@ -400,6 +400,7 @@ Where ``'hook'`` is one of the following hook strings and ``function`` is a func
 
     hooks.register('construct_wagtail_edit_bird', add_puppy_link_item)
 
+
 ``construct_homepage_panels``
   Add or remove panels from the Wagtail admin homepage. The callable passed into this hook should take a ``request`` object and a list of ``panels``, objects which have a ``render()`` method returning a string. The objects also have an ``order`` property, an integer used for ordering the panels. The default panels use integers between ``100`` and ``300``.
 
@@ -428,14 +429,36 @@ Where ``'hook'`` is one of the following hook strings and ``function`` is a func
 ``after_create_page``
   Do something with a ``Page`` object after it has been saved to the database (as a published page or a revision).
 
+
 ``after_edit_page``
   Do something with a ``Page`` object after it has been updated.
+
 
 ``after_delete_page``
   Do something after a ``Page`` object is deleted.
 
+
 ``register_admin_urls``
-  Register additional admin page URLs.
+  Register additional admin page URLs. The callable fed into this hook should return a list of Django URL patterns which define the structure of the pages and endpoints of your extension to the Wagtail admin. For more about vanilla Django URLconfs and views, see `url dispatcher`_.
+
+  .. _url dispatcher: https://docs.djangoproject.com/en/dev/topics/http/urls/
+
+  .. code-block:: python
+
+  from django.http import HttpResponse
+  from django.conf.urls import url
+
+  from wagtail.wagtailadmin import hooks
+
+  def admin_view( request ):
+    return HttpResponse("I have approximate knowledge of many things!", content_type="text/plain")
+
+  def urlconf_time():
+    return [
+      url(r'^how_did_you_almost_know_my_name/$', admin_view, name='frank' ),
+    ]
+  hooks.register('register_admin_urls', urlconf_time)
+
 
 ``construct_main_menu``
   Add, remove, or alter ``MenuItem`` objects from the Wagtail admin menu.
