@@ -372,65 +372,114 @@ Hooks
 
 On loading, Wagtail will search for any app with the file ``wagtail_hooks.py`` and execute the contents. This provides a way to register your own functions to execute at certain points in Wagtail's execution, such as when a ``Page`` object is saved or when the main menu is constructed.
 
-construct_wagtail_edit_bird
-  Add or remove items from the wagtail userbar. Add, edit, and moderation tools are provided by default.
+Registering functions with a Wagtail hook follows the following pattern:
 
-construct_homepage_panels
-  Add or remove panels from the Wagtail admin homepage.
+.. code-block:: python
 
-after_create_page
+  from wagtail.wagtailadmin import hooks
+
+  hooks.register('hook', function)
+
+Where ``'hook'`` is one of the following hook strings and ``function`` is a function you've defined to handle the hook.
+
+
+``construct_wagtail_edit_bird``
+  Add or remove items from the wagtail userbar. Add, edit, and moderation tools are provided by default. The callable passed into the hook must take the ``request`` object and a list of menu objects, ``items``. The menu item objects must have a ``render`` method which can take a ``request`` object and return the HTML string represneting the menu item. See the userbar templates and menu item classes for more information.
+
+  .. code-block:: python
+
+    from wagtail.wagtailadmin import hooks
+
+    class UserbarPuppyLinkItem(object):
+      def render(self, request):
+        return '<li><a href="http://cuteoverload.com/tag/puppehs/" ' \
+        + 'target="_parent" class="action icon icon-wagtail">Puppies!</a></li>'
+
+    def add_puppy_link_item(request, items):
+      return items.append( UserbarPuppyLinkItem() )
+
+    hooks.register('construct_wagtail_edit_bird', add_puppy_link_item)
+
+``construct_homepage_panels``
+  Add or remove panels from the Wagtail admin homepage. The callable passed into this hook should take a ``request`` object and a list of ``panels``, objects which have a ``render()`` method returning a string. The objects also have an ``order`` property, an integer used for ordering the panels. The default panels use integers between ``100`` and ``300``.
+
+  .. code-block:: python
+
+    from django.utils.safestring import mark_safe
+
+    from wagtail.wagtailadmin import hooks
+
+    class WelcomePanel(object):
+      order = 50
+
+      def render(self):
+        return mark_safe("""
+        <section class="panel summary nice-padding">
+          <h3>No, but seriously -- welcome to the admin homepage.</h3>
+        </section>
+        """)
+
+    def add_another_welcome_panel(request, panels):
+      return panels.append( WelcomePanel() )
+
+    hooks.register('construct_homepage_panels', add_another_welcome_panel)
+
+
+``after_create_page``
   Do something with a ``Page`` object after it has been saved to the database (as a published page or a revision).
 
-after_edit_page
+``after_edit_page``
   Do something with a ``Page`` object after it has been updated.
 
-after_delete_page
+``after_delete_page``
   Do something after a ``Page`` object is deleted.
 
-register_admin_urls
+``register_admin_urls``
   Register additional admin page URLs.
 
-construct_main_menu
+``construct_main_menu``
   Add, remove, or alter ``MenuItem`` objects from the Wagtail admin menu.
 
 
-insert_editor_js
+``insert_editor_js``
   Add additional Javascript files or code snippets to the page editor. Output must be compatible with ``compress``, as local static includes or string.
 
-.. code-block:: python
+  .. code-block:: python
 
-  from django.utils.html import format_html, format_html_join
-  from django.conf import settings
+    from django.utils.html import format_html, format_html_join
+    from django.conf import settings
 
-  from wagtail.wagtailadmin import hooks
+    from wagtail.wagtailadmin import hooks
 
-  def editor_js():
-    js_files = [
-      'demo/js/hallo-plugins/hallo-demo-plugin.js',
-    ]
-    js_includes = format_html_join('\n', '<script src="{0}{1}"></script>',
-      ((settings.STATIC_URL, filename) for filename in js_files)
-    )
-    return js_includes + format_html(
-      """
-      <script>
-        registerHalloPlugin('demoeditor');
-      </script>
-      """
-    )
-  hooks.register('insert_editor_js', editor_js)
+    def editor_js():
+      js_files = [
+        'demo/js/hallo-plugins/hallo-demo-plugin.js',
+      ]
+      js_includes = format_html_join('\n', '<script src="{0}{1}"></script>',
+        ((settings.STATIC_URL, filename) for filename in js_files)
+      )
+      return js_includes + format_html(
+        """
+        <script>
+          registerHalloPlugin('demoeditor');
+        </script>
+        """
+      )
+    hooks.register('insert_editor_js', editor_js)
 
 
-insert_editor_css
+``insert_editor_css``
   Add additional CSS or SCSS files or snippets to the page editor. Output must be compatible with ``compress``, as local static includes or string.
 
-.. code-block:: python
+  .. code-block:: python
 
-  from django.utils.html import format_html
-  from django.conf import settings
+    from django.utils.html import format_html
+    from django.conf import settings
 
-  from wagtail.wagtailadmin import hooks
+    from wagtail.wagtailadmin import hooks
 
-  def editor_css():
-    return format_html('<link rel="stylesheet" href="'+ settings.STATIC_URL + 'demo/css/vendor/font-awesome/css/font-awesome.min.css">')
-  hooks.register('insert_editor_css', editor_css)
+    def editor_css():
+      return format_html('<link rel="stylesheet" href="' \
+      + settings.STATIC_URL \
+      + 'demo/css/vendor/font-awesome/css/font-awesome.min.css">')
+    hooks.register('insert_editor_css', editor_css)
