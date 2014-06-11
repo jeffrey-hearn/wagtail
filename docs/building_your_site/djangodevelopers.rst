@@ -187,14 +187,75 @@ In addition to the model fields provided, ``Page`` has many properties and metho
 
 Properties:
 
-* specific
-* url
-* full_url
-* relative_url
-* has_unpublished_changes
-* status_string
-* subpage_types
-* indexed_fields
+``self.specific``
+    This property is the page object in its most specific subclassed form. For example, you use ``Page.objects.first()`` to get a Page object, but you want the object in the form of your Model, ``Foo``, which subclasses Page. ``self.specific`` would contain the object of type ``Foo`` found by the ``Page.objects.first()`` query.
+
+``self.url``
+    The url of the page object. If the object is below the site root the request was made to, ``self.url`` will be a relative link from the site root (ex. ``/foo/bar/``. If the Page object is under another site root, ``self.url`` will be a fully-qualified link with domain (ex. ``http://www.foo.com/foo/bar/``).
+
+``self.full_url``
+    The fully-qualified link to the object, including domain (ex. ``http://www.foo.com/foo/bar/``).
+
+``self.relative_url``
+    The object's URL path relative relative to the site root (ex. ``/foo/bar/``).
+
+``self.has_unpublished_changes``
+    Boolean property which will be true if and only if this page object is non-live, and it has no live children. This must be true in order for unprivileged editors to be able to delete the object.
+
+``self.status_string``
+    This property explains the editing state of the object. It will return one of these values:
+        ``'draft'`` is an unpublished Page object.
+        ``'live'`` is a published Page object.
+        ``'live + draft'`` is a page object which has both a published version and an unpublished revision.
+
+``self.subpage_types``
+    This property can be set to specify a list of page types this model can be a child of. For instance, consider the following model definitions:
+
+    .. code-block:: python
+
+        class EventIndexPage(Page):
+            pass
+
+        class EventPage(Page):
+            subpage_types = [ 'myapp.EventIndexPage' ]
+
+        class BlogPage(Page):
+            pass
+
+    When adding a child page to a ``BlogPage``, ``EventPage`` will not appear in the list of choices for content models to add. ``EventPage`` will only show up as a possible child page when added under a ``EventIndexPage`` object. The relationship is not reciprocal, though, so an ``EventIndexPage`` could have both ``EventPage`` and ``BlogPage`` children unless further ``subpage_types`` are defined.
+
+    The ``subpage_types`` list can include classes (``EventIndexPage``), references as ``app_name.model_name`` (``'myapp.EventIndexPage'``), or a mixture of the two.
+
+``self.search_fields``
+    When using a non-default search backend, such as ElasticSearch, setting ``search_fields`` with a tuple of field names will include those extra fields in the "document" representation of the current object processed by the search back end.
+
+    For advanced usage, indexed_fields can 
+
+    .. code-block:: python
+
+        search_fields = {
+            'title': dict(partial_match=True, boost=10),
+            'get_tags': dict(partial_match=True, boost=10),
+        }
+
+'index':
+    'not_analyzed'
+'indexed':
+    'no'
+'boost':
+    default is 1
+    floating point
+'partial_match':
+    bool
+'analyzer':
+    'edgengram_analyzer'
+'es_extra':
+    everything not above is lumped into this dict item
+
+
+
+        
+
 
 Methods:
 
