@@ -185,7 +185,8 @@ Page Properties and Methods Reference
 
 In addition to the model fields provided, ``Page`` has many properties and methods that you may wish to reference, use, or override in creating your own models. Those listed here are relatively straightforward to use, but consult the Wagtail source code for a full view of what's possible.
 
-Properties:
+Properties
+----------
 
 ``self.specific``
     This property is the page object in its most specific subclassed form. For example, you use ``Page.objects.first()`` to get a Page object, but you want the object in the form of your Model, ``Foo``, which subclasses Page. ``self.specific`` would contain the object of type ``Foo`` found by the ``Page.objects.first()`` query.
@@ -226,10 +227,12 @@ Properties:
 
     The ``subpage_types`` list can include classes (``EventIndexPage``), references as ``app_name.model_name`` (``'myapp.EventIndexPage'``), or a mixture of the two.
 
-``self.search_fields``
-    When using a non-default search backend, such as ElasticSearch, setting ``search_fields`` with a tuple of field names will include those extra fields in the "document" representation of the current object processed by the search back end.
+.. _search_fields:
 
-    For advanced usage, indexed_fields can 
+``self.search_fields``
+    When using a non-default search backend, such as Elasticsearch, setting ``search_fields`` with a tuple of field names will include those extra fields in the "document" representation of the current object processed by the search back end.
+
+    For advanced usage, search_fields can take the form of a dict of fields, each with their own dict of search settings:
 
     .. code-block:: python
 
@@ -238,26 +241,15 @@ Properties:
             'get_tags': dict(partial_match=True, boost=10),
         }
 
-'index':
-    'not_analyzed'
-'indexed':
-    'no'
-'boost':
-    default is 1
-    floating point
-'partial_match':
-    bool
-'analyzer':
-    'edgengram_analyzer'
-'es_extra':
-    everything not above is lumped into this dict item
+    The inner dict for each field can contain settings like ``boost``, a floating point number which will weight a field's importance/relevance, and ``partial_match``, which if set to ``True`` will allow the field content to be split apart (and not accepted as a single keyword). For a full reference on what Elasticsearch can do, see the `elasticsearch-py module documentation`_ or the `Elasticsearch API documentation`_.
+
+.. _elasticsearch-py module documentation: https://github.com/elasticsearch/elasticsearch-py
+
+.. _Elasticsearch API documentation: http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/docs.html
 
 
-
-        
-
-
-Methods:
+Methods
+-------
 
 * route
 * serve

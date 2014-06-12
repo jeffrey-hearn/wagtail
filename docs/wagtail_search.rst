@@ -202,7 +202,7 @@ In this template, you'll have access to the same context variables provided to t
 Indexing Custom Fields & Custom Search Views
 --------------------------------------------
 
-This functionality is still under active development to provide a streamlined interface, but take a look at ``wagtail/wagtail/wagtailsearch/views/frontend.py`` if you are interested in coding custom search views.
+If you are using an advanced search backend, like ElasticSearch, you can add a ``search_fields`` property to your ``Page`` model definitions which will extend the indexed "document" representation of your model in the search backend. For a settings reference, see :ref:`Search Fields<search_fields>` .
 
 
 Search Backends
