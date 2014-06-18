@@ -253,13 +253,21 @@ Methods
 
 * route
 * serve
-* get_context
-* get_template
-* is_navigable
+
+
+
+``self.get_context(request)``
+    ``get_context()`` is used to build a context object to pass into a template to render it. By default, Wagtail takes a request object and returns a context object with ``self`` and ``request``.
+
+``self.get_template(request)``
+    Used to find the template to render the Page object. Internally, the path to the class' HTML and AJAX templates are kept in ``self.template`` and ``self.ajax_template``, respectively. ``get_template()`` will return the appropriate template based on the request object.
+
+get_siblings
+
 * get_other_siblings
 * get_ancestors
 * get_descendants
-* get_siblings
+* 
 * search
 * get_page_modes
 * show_as_mode
